@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inspection History Log | Banana AI Vision Engine</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-darker: #090d16;
+            --bg-card: #111827;
+            --border-color: rgba(255, 255, 255, 0.08);
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --brand-gold: #f59e0b;
+        }
+
+        body {
+            background-color: var(--bg-darker);
+            color: var(--text-primary);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            min-height: 100vh;
+            padding: 2rem 1rem;
+        }
+
+        .history-card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+        }
+
+        .table-custom {
+            color: var(--text-primary) !important;
+            margin-bottom: 0;
+        }
+
+        .table-custom th {
+            background-color: #1f2937 !important;
+            color: var(--text-secondary) !important;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.05em;
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .table-custom td {
+            background-color: transparent !important;
+            color: #e2e8f0 !important;
+            padding: 16px;
+            vertical-align: middle;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+        }
+
+        .table-custom tr:hover td {
+            background-color: rgba(255, 255, 255, 0.02) !important;
+        }
+
+        /* Grade Badge Adjustments */
+        .badge-grade-sm {
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-weight: 700;
+            font-size: 0.75rem;
+            letter-spacing: 0.02em;
+        }
+
+        .grade-a { background-color: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.2); }
+        .grade-b { background-color: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.2); }
+        .grade-c { background-color: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.2); }
+        .grade-reject { background-color: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.2); }
+
+        .btn-action {
+            background-color: #1f2937;
+            border: 1px solid #374151;
+            color: #f3f4f6;
+            transition: all 0.2s;
+        }
+
+        .btn-action:hover {
+            background-color: var(--brand-gold);
+            color: #090d16;
+            border-color: var(--brand-gold);
+        }
+
+        .page-link-custom {
+            background-color: #111827 !important;
+            border-color: #374151 !important;
+            color: var(--text-secondary) !important;
+        }
+
+        .page-item.active .page-link-custom {
+            background-color: var(--brand-gold) !important;
+            border-color: var(--brand-gold) !important;
+            color: #090d16 !important;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container-fluid max-w-7xl">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <a href="{% url 'dashboard_home' %}" class="text-decoration-none small text-warning fw-semibold">
+                <i class="fa-solid fa-arrow-left me-1"></i> Return to Live Dashboard
+            </a>
+            <h2 class="fw-bold text-white mt-1 mb-0">Inspection Telemetry Log</h2>
+        </div>
+        <span class="subtitle-text small">Total Found: <strong class="text-white">{{ paginator.count|default:reports|length }} records</strong></span>
+    </div>
+
+    <div class="card history-card">
+        <div class="table-responsive">
+            <table class="table table-custom">
+                <thead>
+                    <tr>
+                        <th>Sr. No.</th>
+                        <th>Timestamp (UTC)</th>
+                        <th>Length</th>
+                        <th>Width</th>
+                        <th>Thickness</th   >
+                        <th>Projected Area</th>
+                        <th>Estimated Weight</th>
+                        <th>Assigned Grade</th>
+                        <th class="text-center">Certificate</th>
+                        <th class="text-center">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for report in reports %}
+                    <tr>
+                        <td class="fw-bold text-white">
+                            {{ forloop.counter }}
+                        </td>
+
+                        <td class="text-nowrap">
+                            {{ report.processed_at|date:"Y-m-d H:i:s" }}
+                        </td>
+
+                        <td>{{ report.calculated_length|floatformat:2 }} mm</td>
+                        <td>{{ report.calculated_width|floatformat:2 }} mm</td>
+                        <td>{{ report.calculated_thickness|floatformat:2 }} mm</td>
+                        <td>{{ report.calculated_area|floatformat:2 }} mm²</td>
+
+                        <td class="fw-semibold text-warning">
+                            {{ report.estimated_weight|floatformat:2 }} g
+                        </td>
+
+                        <td>
+                            {% if report.assigned_grade == "Grade A" %}
+                                <span class="badge badge-grade-sm grade-a">GRADE A</span>
+                            {% elif report.assigned_grade == "Grade B" %}
+                                <span class="badge badge-grade-sm grade-b">GRADE B</span>
+                            {% elif report.assigned_grade == "Grade C" %}
+                                <span class="badge badge-grade-sm grade-c">GRADE C</span>
+                            {% else %}
+                                <span class="badge badge-grade-sm grade-reject">REJECT</span>
+                            {% endif %}
+                        </td>
+
+                        <td class="text-center">
+                            <a href="{% url 'generate_pdf_report' report.id %}"
+                            class="btn btn-action btn-sm rounded-3">
+                                <i class="fa-solid fa-file-pdf"></i> Export
+                            </a>
+                        </td>
+
+                        <td class="text-center">
+                            <form method="post"
+                                action="{% url 'delete_report' report.id %}"
+                                onsubmit="return confirm('Delete this inspection record?');">
+                                {% csrf_token %}
+                                <button type="submit"
+                                        class="btn btn-danger btn-sm rounded-3">
+                                    <i class="fa-solid fa-trash"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+
+                    {% empty %}
+                    <tr>
+                        <td colspan="10" class="text-center subtitle-text py-5">
+                            <i class="fa-solid fa-box-open d-block fs-2 mb-3 text-secondary"></i>
+                            No calibration inspection runs cataloged in system history yet.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    {% if is_paginated %}
+    <nav class="d-flex justify-content-center mt-4">
+        <ul class="pagination gap-1">
+            {% if page_obj.has_previous %}
+                <li class="page-item"><a class="page-link page-link-custom rounded-3" href="?page={{ page_obj.previous_page_number }}"><i class="fa-solid fa-chevron-left"></i></a></li>
+            {% endif %}
+            
+            {% for num in page_obj.paginator.page_range %}
+                <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+                    <a class="page-link page-link-custom rounded-3" href="?page={{ num }}">{{ num }}</a>
+                </li>
+            {% endfor %}
+
+            {% if page_obj.has_next %}
+                <li class="page-item"><a class="page-link page-link-custom rounded-3" href="?page={{ page_obj.next_page_number }}"><i class="fa-solid fa-chevron-right"></i></a></li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

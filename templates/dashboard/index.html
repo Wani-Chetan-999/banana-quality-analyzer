@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard | AI Banana Grading & Measurement</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --bg-main: #0f172a;
+            --bg-card: #1e293b;
+            --border-color: rgba(255, 255, 255, 0.08);
+            --text-title: #f8fafc;
+            --text-body: #cbd5e1;
+            --subtitle-text: #64748b;
+            --accent-yellow: #eab308;
+            --accent-hover: #ca8a04;
+            --sidebar-width: 260px;
+        }
+
+    body {
+        background-color: var(--bg-main);
+        color: var(--text-body);
+        font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        overflow-x: hidden;
+    }
+
+    /* Layout Configurations */
+    .app-wrapper {
+        display: flex;
+        min-height: 100vh;
+    }
+
+    /* Fixed Left Navigation Bar Styling */
+    .sidebar-panel {
+        width: var(--sidebar-width);
+        background-color: var(--bg-card);
+        border-right: 1px solid var(--border-color);
+        display: flex;
+        flex-direction: column;
+        position: fixed;
+        height: 100vh;
+        z-index: 100;
+    }
+
+    .sidebar-brand-box {
+        padding: 24px;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .sidebar-links-group {
+        padding: 20px 12px;
+        flex-grow: 1;
+    }
+
+    .sidebar-item-link {
+        display: flex;
+        align-items: center;
+        padding: 12px 16px;
+        color: var(--text-body);
+        text-decoration: none;
+        border-radius: 8px;
+        margin-bottom: 6px;
+        font-weight: 500;
+        transition: all 0.2s ease;
+    }
+
+    .sidebar-item-link:hover, .sidebar-item-link.active {
+        background-color: rgba(234, 179, 8, 0.15);
+        color: var(--accent-yellow);
+    }
+
+    .sidebar-item-link i {
+        width: 24px;
+        font-size: 1.1rem;
+    }
+
+    /* Main Board Dynamic Content Framework viewport */
+    .main-workspace-container {
+        margin-left: var(--sidebar-width);
+        flex-grow: 1;
+        padding: 32px;
+        min-width: 0;
+    }
+
+    /* Premium Component Presentation Elements Cards */
+    .custom-card-panel {
+        background-color: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: 14px;
+        padding: 24px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        margin-bottom: 24px;
+    }
+
+    .card-title-text {
+        font-size: 1.15rem;
+        font-weight: 600;
+        color: var(--text-title);
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    /* Camera feeds and visualization blocks descriptors */
+    .camera-feed-box {
+        background-color: #0b0f19;
+        height: 250px;
+        border-radius: 10px;
+        border: 1px solid rgba(255, 255, 255, 0.04);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .camera-badge {
+        position: absolute;
+        top: 12px;
+        left: 12px;
+        background-color: rgba(15, 23, 42, 0.8);
+        padding: 4px 10px;
+        border-radius: 6px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        letter-spacing: 0.05em;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        z-index: 10;
+    }
+
+    /* Numeric metric display box blocks definitions */
+    .metric-display-tile {
+        background-color: rgba(15, 23, 42, 0.4);
+        border: 1px solid rgba(255, 255, 255, 0.03);
+        border-radius: 10px;
+        padding: 16px;
+        text-align: center;
+    }
+
+    .title-text-muted {
+        color: var(--subtitle-text);
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .hero-weight-readout {
+        font-size: 3.5rem;
+        font-weight: 800;
+        color: var(--text-title);
+        line-height: 1;
+    }
+
+    .commercial-grade-badge {
+        font-size: 1.25rem;
+        font-weight: 700;
+        padding: 10px 32px;
+        border-radius: 8px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        display: inline-block;
+    }
+
+    /* Interactive Interface Buttons Definitions */
+    .btn-action-trigger {
+        background-color: var(--accent-yellow);
+        color: #0f172a;
+        font-weight: 700;
+        padding: 14px 28px;
+        border-radius: 10px;
+        border: none;
+        transition: all 0.2s ease;
+        box-shadow: 0 4px 12px rgba(234, 179, 8, 0.2);
+    }
+
+    .btn-action-trigger:hover {
+        background-color: var(--accent-hover);
+        color: #0f172a;
+        transform: translateY(-1px);
+    }
+
+    /* Core Application Standard Data Tables Framework Style overrides */
+    .table-inspection-history {
+        color: var(--text-body);
+        vertical-align: middle;
+        margin-bottom: 0;
+    }
+
+    .table-inspection-history th {
+        background-color: rgba(15, 23, 42, 0.6) !important;
+        color: var(--text-title);
+        font-weight: 600;
+        border-bottom: 1px solid var(--border-color);
+        padding: 14px 16px;
+    }
+
+    .table-inspection-history td {
+        background-color: transparent !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+        padding: 14px 16px;
+    }
+
+    .subtitle-text {
+        color: var(--subtitle-text);
+    }
+
+    /* Loader Overlay system structure setup */
+    .blur-overlay {
+        filter: blur(4px);
+        pointer-events: none;
+    }
+    .global-processing-spinner-frame {
+        position: fixed;
+        inset: 0;
+        background: rgba(15, 23, 42, 0.7);
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }
+</style>
+</head>
+<body>
+
+    <div class="global-processing-spinner-frame d-none" id="global-processing-spinner">
+        <div class="spinner-border text-warning" style="width: 3.5rem; height: 3.5rem;" role="status"></div>
+        <h5 class="text-white fw-semibold mt-3">Executing Computer Vision Sizing Pipeline...</h5>
+        <p class="text-secondary small">Isolating contours & calculating weight regression matrices</p>
+    </div>
+
+    <div class="app-wrapper w-100" id="main-dashboard-viewport">
+        <div class="sidebar-panel">
+            <div class="sidebar-brand-box">
+                <h4 class="fw-bold mb-0 text-white"><i class="fa-solid fa-layer-group text-warning me-2"></i>Chamber AI</h4>
+                <small class="subtitle-text text-uppercase fw-bold tracking-wider">Dual-Camera Engine</small>
+            </div>
+            <div class="sidebar-links-group">
+                <a href="#" class="sidebar-item-link active"><i class="fa-solid fa-chart-pie"></i> Station Dashboard</a>
+                <a href="/history/" class="sidebar-item-link"><i class="fa-solid fa-clock-rotate-left"></i> Analytics History</a>
+                <a href="/admin/" class="sidebar-item-link"><i class="fa-solid fa-sliders"></i> Configuration Panel</a>
+            </div>
+            <div class="p-3 border-top border-secondary border-opacity-10">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="bg-secondary rounded-circle d-flex align-items-center justify-content-center text-white fw-bold" style="width: 36px; height: 36px; font-size: 0.9rem;">
+                        OP
+                    </div>
+                    <div>
+                        <span class="d-block small text-white fw-semibold">{{ request.user.username|default:"Active Operator" }}</span>
+                        <a href="/accounts/logout/" class="text-decoration-none text-danger small">Sign Out Station</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="main-workspace-container">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2 class="fw-bold text-white mb-1">Inspection Control Terminal</h2>
+                    <p class="subtitle-text mb-0">Fixed Chamber Environment Calibration Station Node</p>
+                </div>
+                <div class="text-end">
+                    <span class="badge bg-dark border border-secondary border-opacity-25 text-success py-2 px-3 fw-bold"><i class="fa-solid fa-circle-check me-2"></i>SENSORS OPERATIONAL</span>
+                </div>
+            </div>
+
+            <div class="row g-4">
+                <div class="col-xl-7">
+                    <div class="custom-card-panel">
+                        <div class="card-title-text"><i class="fa-solid fa-video text-warning"></i> Synchronized Stereoscopic Optics Feeds</div>
+                        
+                        <div class="row g-3">
+                            <div class="col-md-6 mb-3">
+                                <div class="camera-feed-box" id="cam-top">
+                                    <div class="camera-badge"><i class="fa-solid fa-circle text-danger me-1"></i> CAM_01_TOP</div>
+                                    <div class="text-center content-placeholder">
+                                        <i class="fa-solid fa-camera-cctv d-block fs-1 opacity-25 mb-2"></i>
+                                        <span class="text-muted small">Fixed Matte Background Isolation Deck</span>
+                                    </div>
+                                </div>
+                                <input type="file" id="file-top-cam" accept="image/*" class="form-control form-control-sm mt-2 bg-dark text-white border-secondary" style="font-size:0.75rem;" onchange="processLocalPreview(this, 'cam-top')">
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <div class="camera-feed-box" id="cam-side">
+                                    <div class="camera-badge"><i class="fa-solid fa-circle text-danger me-1"></i> CAM_02_SIDE</div>
+                                    <div class="text-center content-placeholder">
+                                        <i class="fa-solid fa-camera-cctv d-block fs-1 opacity-25 mb-2"></i>
+                                        <span class="text-muted small">Transverse Profile Alignment Matrix</span>
+                                    </div>
+                                </div>
+                                <input type="file" id="file-side-cam" accept="image/*" class="form-control form-control-sm mt-2 bg-dark text-white border-secondary" style="font-size:0.75rem;" onchange="processLocalPreview(this, 'cam-side')">
+                            </div>
+                        </div>
+
+                        <button class="btn btn-action-trigger w-100 py-3 mt-2" onclick="triggerMeasurementAnalysis()">
+                            <i class="fa-solid fa-expand-arrows-alt me-2"></i> CAPTURE SYNC STREAMS & RUN ANALYSIS
+                        </button>
+                    </div>
+                </div>
+
+                <div class="col-xl-5">
+                    <div class="custom-card-panel">
+                        <div class="card-title-text"><i class="fa-solid fa-calculator text-warning"></i> Feature Extraction Metrics</div>
+                        
+                        <div class="row g-3">
+                            <div class="col-6">
+                                <div class="metric-display-tile">
+                                    <span class="title-text-muted d-block mb-1">Calculated Length</span>
+                                    <h4 class="fw-bold text-white mb-0" id="lbl-length">-- <span class="fs-6 text-white-50 fw-normal">mm</span></h4>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="metric-display-tile">
+                                    <span class="title-text-muted d-block mb-1">Maximum Width</span>
+                                    <h4 class="fw-bold text-white mb-0" id="lbl-width">-- <span class="fs-6 text-white-50 fw-normal">mm</span></h4>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="metric-display-tile">
+                                    <span class="title-text-muted d-block mb-1">Calculated Thickness</span>
+                                    <h4 class="fw-bold text-white mb-0" id="lbl-thickness">-- <span class="fs-6 text-white-50 fw-normal">mm</span></h4>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="metric-display-tile">
+                                    <span class="title-text-muted d-block mb-1">Projected Surface Area</span>
+                                    <h4 class="fw-bold text-white mb-0" id="lbl-area">-- <span class="fs-6 subtitle-text fw-normal">mm²</span></h4>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="text-center py-4 my-4 border-top border-bottom border-secondary border-opacity-10">
+                            <span class="title-text-muted d-block mb-2">Estimated Mass Matrix Prediction</span>
+                            <div class="hero-weight-readout my-1" id="lbl-weight">0.0<span class="fs-3 text-white-50"> g</span></div>
+                            <div class="mt-3">
+                                <div class="commercial-grade-badge bg-dark subtitle-text text-uppercase" id="lbl-grade">Chamber Idle</div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between subtitle-text small px-1">
+                            <span>Processing Engine Latency: <strong class="text-white" id="lbl-latency">0 ms</strong></span>
+                            <span>Model Reliability Map: <strong class="text-success">98.2% (R²)</strong></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="custom-card-panel mt-4">
+                <div class="card-title-text"><i class="fa-solid fa-list-check text-warning"></i> Recent Inspection Audit Trail Log</div>
+                <div class="table-responsive">
+                    <table class="table table-inspection-history">
+                        <thead>
+                            <tr>
+                                <th>Inspection ID</th>
+                                <th>Timestamp</th>
+                                <th>Length</th>
+                                <th>Width</th>
+                                <th>Thickness</th>
+                                <th>Projected Area</th>
+                                <th>Estimated Mass</th>
+                                <th>Assigned Grade</th>
+                                <th class="text-center">Inspection Record Document</th>
+                            </tr>
+                        </thead>
+                        <tbody id="live-table-append-hook">
+                            {% for log in recent_logs %}
+                            <tr class="text-light">
+                                <td class="font-monospace text-light">#{{ log.id }}</td>
+                                <td class="text-light">{{ log.processed_at|date:"Y-m-d H:i:s" }}</td>
+
+                                <td class="text-light">
+                                    {{ log.calculated_length|floatformat:2 }} mm
+                                </td>
+
+                                <td class="text-light">
+                                    {{ log.calculated_width|floatformat:2 }} mm
+                                </td>
+
+                                <td class="text-light">
+                                    {{ log.calculated_thickness|floatformat:2 }} mm
+                                </td>
+
+                                <td class="text-light">
+                                    {{ log.calculated_area|floatformat:2 }} mm²
+                                </td>
+
+                                <td class="fw-bold text-white">
+                                    {{ log.estimated_weight|floatformat:2 }} g
+                                </td>
+
+                                <td>
+                                    <span class="badge {% if log.assigned_grade == 'Grade A' %}bg-success{% else %}bg-primary{% endif %}">
+                                        {{ log.assigned_grade }}
+                                    </span>
+                                </td>
+
+                                <td class="text-center">
+                                    <a href="{% url 'generate_pdf_report' log.id %}"
+                                    class="btn btn-sm btn-dark border-secondary rounded-3 text-warning">
+                                        <i class="fa-solid fa-file-pdf"></i> Download
+                                    </a>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="9" class="text-center py-4 text-muted small">
+                                    No inspection sequences cataloged in database buffers yet.
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+<script>
+// Local environment client-side image preview utility
+function processLocalPreview(inputElement, targetBoxId) {
+    const boxContainer = document.getElementById(targetBoxId);
+    const placeholderText = boxContainer.querySelector('.content-placeholder');
+    
+    if (inputElement.files && inputElement.files[0]) {
+        const fileReader = new FileReader();
+        fileReader.onload = function(event) {
+            let directImage = boxContainer.querySelector('.live-preview-img');
+            if (!directImage) {
+                directImage = document.createElement('img');
+                directImage.className = 'live-preview-img';
+                directImage.style.width = '100%';
+                directImage.style.height = '100%';
+                directImage.style.objectFit = 'contain';
+                boxContainer.appendChild(directImage);
+            }
+            if (placeholderText) placeholderText.style.display = 'none';
+            directImage.src = event.target.result;
+        }
+        fileReader.readAsDataURL(inputElement.files[0]);
+    }
+}
+
+async function triggerMeasurementAnalysis() {
+    const fileTopInput = document.getElementById('file-top-cam').files[0];
+    const fileSideInput = document.getElementById('file-side-cam').files[0];
+
+    if (!fileTopInput || !fileSideInput) {
+        alert("Verification Guard: Please assign sample banana images to BOTH simulated camera inputs before processing measurements.");
+        return;
+    }
+
+    const loader = document.getElementById('global-processing-spinner');
+    const viewport = document.getElementById('main-dashboard-viewport');
+
+    loader.classList.remove('d-none');
+    viewport.classList.add('blur-overlay');
+
+    let formData = new FormData();
+    formData.append("top_image", fileTopInput);
+    formData.append("side_image", fileSideInput);
+
+    try {
+        const networkResponse = await fetch("/api/v1/analyze/", {
+            method: "POST",
+            headers: { "X-CSRFToken": "{{ csrf_token }}" },
+            body: formData
+        });
+
+        const metricsResult = await networkResponse.json();
+
+        if (networkResponse.ok) {
+            // Update Metric labels values inside DOM containers using high contrast utility classes
+            document.getElementById('lbl-length').innerHTML =`${metricsResult.metrics.length_mm}<span style="color:white;font-size:14px;">mm</span>`;
+            document.getElementById('lbl-width').innerHTML = `${metricsResult.metrics.width_mm} <span class="fs-6 subtitle-text fw-normal">mm</span>`;
+            document.getElementById('lbl-thickness').innerHTML = `${metricsResult.metrics.thickness_mm} <span class="fs-6 subtitle-text fw-normal">mm</span>`;
+            document.getElementById('lbl-area').innerHTML = `${metricsResult.metrics.projected_area_mm2} <span class="fs-6 subtitle-text fw-normal">mm²</span>`;
+            document.getElementById('lbl-weight').innerHTML = `${metricsResult.prediction.weight_grams}<span class="fs-3 subtitle-text fw-normal"> g</span>`;
+            
+            const gradeBadge = document.getElementById('lbl-grade');
+            gradeBadge.innerText = metricsResult.prediction.assigned_grade;
+            gradeBadge.className = "commercial-grade-badge text-white " + 
+                (metricsResult.prediction.assigned_grade === 'Grade A' ? 'bg-success' :
+                 metricsResult.prediction.assigned_grade === 'Grade B' ? 'bg-primary' :
+                 metricsResult.prediction.assigned_grade === 'Grade C' ? 'bg-warning text-dark' : 'bg-danger');
+
+            document.getElementById('lbl-latency').innerText = `${metricsResult.performance.latency_ms} ms`;
+
+            // Append row to current history logging datatable grid directly
+            const rowHook = document.getElementById('live-table-append-hook');
+            const rowHTML = `
+                <tr>
+                    <td class="font-monospace subtitle-text">#${metricsResult.id}</td>
+                    <td>Just Now</td>
+                    <td>${metricsResult.metrics.length_mm} mm</td>
+                    <td>${metricsResult.metrics.width_mm} mm</td>
+                    <td>${metricsResult.metrics.thickness_mm} mm</td>
+                    <td>${metricsResult.metrics.projected_area_mm2} mm²</td>
+                    <td class="fw-bold text-white">${metricsResult.prediction.weight_grams} g</td>
+                    <td><span class="badge ${metricsResult.prediction.assigned_grade === 'Grade A' ? 'bg-success' : 'bg-primary'}">${metricsResult.prediction.assigned_grade}</span></td>
+                    <td class="text-center"><a href="/reports/${metricsResult.id}/pdf/" class="btn btn-sm btn-dark border-secondary rounded-3 text-warning"><i class="fa-solid fa-file-pdf"></i> Download</a></td>
+                </tr>
+            `;
+            rowHook.innerHTML = rowHTML + rowHook.innerHTML;
+
+        } else {
+            alert("Inspection system hardware processing exception: " + metricsResult.error);
+        }
+    } catch (serverException) {
+        alert("Critical HTTP link handshake breakdown. Check your local dev server connectivity.");
+    } finally {
+        loader.classList.add('d-none');
+        viewport.classList.remove('blur-overlay');
+    }
+}
+</script>
+</body>
+</html>
