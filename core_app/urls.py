@@ -6,6 +6,8 @@ from django.conf.urls.static import static
 from dashboard import views
 from dashboard.views import DashboardIndexView, HistoricalAnalysisListView, export_pdf_report_view
 from api.views import AnalyzeBananaView
+from django.conf import settings
+from django.conf.urls.static import static
 
 urlpatterns = [
     path('admin/', admin.site.urls),

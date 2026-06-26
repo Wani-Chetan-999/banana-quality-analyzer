@@ -7,7 +7,7 @@ from rest_framework.permissions import IsAuthenticated
 from django.core.files.storage import default_storage
 from dashboard.models import BananaAnalysisReport, GradingConfig
 from utils.cv_engine import BananaCVEngine
-
+import traceback
 class AnalyzeBananaView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -79,9 +79,16 @@ class AnalyzeBananaView(APIView):
                 "performance": {
                     "latency_ms": processing_duration
                 }
-            })
+            })   
         except Exception as err:
-            return Response({"error": str(err)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            traceback.print_exc()
+            return Response(
+                {
+                    "error": str(err),
+                    "type": type(err).__name__
+                },
+                status=500
+            )
         finally:
             if default_storage.exists(top_path):
                 default_storage.delete(top_path)
