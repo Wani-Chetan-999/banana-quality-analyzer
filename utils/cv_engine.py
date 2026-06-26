@@ -10,19 +10,19 @@ class BananaCVEngine:
     Implements the precise 3D Volumetric extraction geometry from mergeViewG.py
     using fixed scale properties.
     """
-    def __init__(self):
+    def __init__(self): 
         self.PIXELS_PER_CM_TOP = 120.0
         self.PIXELS_PER_CM_SIDE = 110.0
         self.BANANA_DENSITY = 0.96       
         self.SHAPE_CORRECTION = 0.78     
 
     def extract_raw_features(self, image_path, pixels_per_cm):
+        print("Reading image:", image_path)
+
         img = cv2.imread(image_path)
 
         if img is None:
-            raise FileNotFoundError(
-                f"Could not load image asset at: {image_path}"
-            )
+            raise FileNotFoundError(f"Could not load image asset at: {image_path}")
 
         hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
         _, s, _ = cv2.split(hsv)
@@ -215,27 +215,4 @@ class BananaCVEngine:
                     2
                 )
         }
-        """Executes the complete dual-view structural fusion logic from mergeViewG.py."""
-        # 1. Process separate optics perspectives returning a strict 3-item tuple
-        top_len, top_width, top_area_px = self.extract_raw_features(top_image_path, self.PIXELS_PER_CM_TOP)
-        side_len, side_thickness, _ = self.extract_raw_features(side_image_path, self.PIXELS_PER_CM_SIDE)
-        
-        # 2. Reconstruct volumetric sizing logic using exact mergeViewG parameters
-        precise_length_cm = max(top_len, side_len)
-        true_width_cm = top_width
-        true_depth_cm = side_thickness
-        
-        cross_section_area = np.pi * (true_width_cm / 2.0) * (true_depth_cm / 2.0)
-        calculated_volume_cm3 = cross_section_area * precise_length_cm * self.SHAPE_CORRECTION
-        estimated_weight_g = calculated_volume_cm3 * self.BANANA_DENSITY
-
-        # 3. Apply the calibration scaling factor to convert raw pixel area to square millimeters (mm²)
-        area_mm2 = top_area_px * ((10.0 / self.PIXELS_PER_CM_TOP) ** 2)
-
-        return {
-            "length_mm": round(precise_length_cm * 10.0, 2),
-            "width_mm": round(true_width_cm * 10.0, 2),
-            "thickness_mm": round(true_depth_cm * 10.0, 2),
-            "area_mm2": round(area_mm2, 2),
-            "weight_g": round(estimated_weight_g, 2)
-        }
+       

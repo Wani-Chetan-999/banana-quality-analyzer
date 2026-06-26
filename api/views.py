@@ -23,8 +23,17 @@ class AnalyzeBananaView(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        top_path = default_storage.save(f"tmp/{top_file.name}", top_file)
-        side_path = default_storage.save(f"tmp/{side_file.name}", side_file)
+        import uuid
+
+        top_path = default_storage.save(
+            f"tmp/{uuid.uuid4()}.jpg",
+            top_file
+        )
+
+        side_path = default_storage.save(
+            f"tmp/{uuid.uuid4()}.jpg",
+            side_file
+        )
         
         full_top_path = default_storage.path(top_path)
         full_side_path = default_storage.path(side_path)
