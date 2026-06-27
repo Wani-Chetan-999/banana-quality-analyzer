@@ -338,7 +338,13 @@ class BananaReportGenerator:
         cert_text = "<b>Attestation:</b> Rigorously generated in real-time by the Chamber AI Enclosure Sizing Node using pixel coordinate distance multipliers and volumetric distribution density tracking algorithms."
         
         # Resolve correct logo path using settings module
-        logo_path = os.path.join(settings.MEDIA_ROOT, "logo.png")
+        logo_path = os.path.join(
+            settings.BASE_DIR,
+            "static",
+            "images",
+            "logo.png"
+        )
+
         if not os.path.exists(logo_path):
             try:
                 # Fallback to static directory if not located in media
