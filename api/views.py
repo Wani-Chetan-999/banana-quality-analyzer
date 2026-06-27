@@ -113,7 +113,7 @@ class AnalyzeBananaView(APIView):
             # -----------------------------------------------------
 
             return Response(
-                {
+             {
                     "id": record.id,
 
                     "metrics": {
@@ -131,6 +131,11 @@ class AnalyzeBananaView(APIView):
                     "performance": {
                         "latency_ms": processing_duration
                     },
+
+                    "debug": results["debug"],
+
+                    # NEW
+                    "quality": results["quality"]
                 }
             )
 

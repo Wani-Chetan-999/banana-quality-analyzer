@@ -224,6 +224,27 @@
         align-items: center;
         justify-content: center;
     }
+    #vision-debug-panel{
+        opacity:0;
+        transform:translateY(30px);
+        transition:.4s;
+    }
+
+    #vision-debug-panel.show{
+        opacity:1;
+        transform:translateY(0);
+    }
+
+    #top-quality,
+    #side-quality{
+
+        color:#ffffff !important;
+
+        font-size:0.95rem;
+
+        line-height:1.8;
+    }
+
 </style>
 </head>
 <body>
@@ -447,7 +468,173 @@
                     </div>
                 </div>
             </div>
+            <div class="custom-card-panel d-none" id="vision-debug-panel">
+            <div class="card-title-text">
+                <i class="fa-solid fa-eye text-warning"></i>
+                Computer Vision Inspection Report
+            </div>
+             <hr class="border-secondary">
 
+            <div class="mt-3">
+
+                <h5 class="text-warning mb-3">
+                    <i class="fa-solid fa-shield-check"></i>
+                    Capture Quality Assessment
+                </h5>
+
+                <div class="row">
+
+                    <!-- Overall Score -->
+                    <div class="col-md-4">
+
+                        <div class="card bg-dark border-secondary h-100">
+
+                            <div class="card-body text-center">
+
+                                <h6>Overall Quality</h6>
+
+                                <h2 id="quality-score"
+                                    class="text-success fw-bold">
+                                    0%
+                                </h2>
+
+                                <div class="progress mt-3"
+                                    style="height:20px;">
+
+                                    <div
+                                        id="quality-progress"
+                                        class="progress-bar bg-success"
+                                        style="width:0%;">
+                                    </div>
+
+                                </div>
+
+                                <h5
+                                    class="mt-3"
+                                    id="quality-status">
+                                    --
+                                </h5>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <!-- Top Camera -->
+                    <div class="col-md-4">
+
+                        <div class="card bg-dark border-secondary h-100">
+
+                            <div class="card-header bg-secondary text-white fw-bold">
+                                Top Camera
+                            </div>
+
+                            <div id="top-quality"
+                                class="card-body text-white small">
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <!-- Side Camera -->
+
+                    <div class="col-md-4">
+
+                        <div class="card bg-dark border-secondary h-100">
+
+                            <div class="card-header bg-secondary text-white fw-bold">
+                                Side Camera
+                            </div>
+
+                            <div id="side-quality"
+                                class="card-body text-white small">
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div class="alert alert-info mt-4">
+
+                    <b>Recommendation</b>
+
+                    <br>
+
+                    <span id="quality-recommendation">
+                        --
+                    </span>
+
+                </div>
+
+            </div>
+            <div class="alert alert-success py-2 mb-4 d-none"
+                id="vision-status">
+                <i class="fa-solid fa-circle-check me-2"></i>
+                Banana successfully segmented and feature matrix generated.
+            </div>
+            <div class="row">
+                <div class="col-md-6">
+                    <h6 class="text-center text-warning mb-3">
+                        Top View
+                    </h6>
+                    <div class="row">
+                        <div class="col-6">
+                            <small class="d-block text-center mb-2">
+                                Original
+                            </small>
+
+                            <img
+                                id="debug-top-original"
+                                class="img-fluid rounded border border-secondary"
+                                style="height:220px;width:100%;object-fit:contain;">
+
+                        </div>
+                        <div class="col-6">
+                            <small class="d-block text-center mb-2">
+                                Detected
+                            </small>
+                            <img
+                                id="debug-top-annotated"
+                                class="img-fluid rounded border border-secondary"
+                                style="height:220px;width:100%;object-fit:contain;">
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+
+                    <h6 class="text-center text-warning mb-3">
+                        Side View
+                    </h6>
+                    <div class="row">
+                        <div class="col-6">
+
+                            <small class="d-block text-center mb-2">
+                                Original
+                            </small>
+                            <img
+                                id="debug-side-original"
+                                class="img-fluid rounded border border-secondary"
+                                style="height:220px;width:100%;object-fit:contain;">
+
+                        </div>
+
+                        <div class="col-6">
+                            <small class="d-block text-center mb-2">
+                                Detected
+                            </small>
+                            <img
+                                id="debug-side-annotated"
+                                class="img-fluid rounded border border-secondary"
+                                style="height:220px;width:100%;object-fit:contain;">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
             <div class="custom-card-panel mt-4">
                 <div class="card-title-text"><i class="fa-solid fa-list-check text-warning"></i> Recent Inspection Audit Trail Log</div>
                 <div class="table-responsive">
@@ -570,6 +757,16 @@ async function triggerMeasurementAnalysis() {
     const viewport = document.getElementById('main-dashboard-viewport');
 
     loader.classList.remove('d-none');
+    const panel =
+    document.getElementById("vision-debug-panel");
+
+    panel.classList.remove("show");
+
+    panel.classList.add("d-none");
+
+    document
+    .getElementById("vision-status")
+    .classList.add("d-none");
     viewport.classList.add('blur-overlay');
 
     let formData = new FormData();
@@ -616,6 +813,58 @@ async function triggerMeasurementAnalysis() {
 
             document.getElementById('lbl-latency').innerText = `${metricsResult.performance.latency_ms} ms`;
 
+            const panel = document.getElementById("vision-debug-panel");
+
+            panel.classList.remove("d-none");
+
+            setTimeout(()=>{
+
+                panel.classList.add("show");
+
+            },100);
+
+            document
+                .getElementById("vision-status")
+                .classList.remove("d-none");
+
+            document.getElementById("debug-top-original").src =
+            metricsResult.debug.top.original;
+            document.getElementById("debug-top-annotated").src =
+            metricsResult.debug.top.annotated;
+
+            document.getElementById("debug-side-original").src =
+            metricsResult.debug.side.original;
+
+            document.getElementById("debug-side-annotated").src =
+            metricsResult.debug.side.annotated;
+            
+            console.log(metricsResult);
+            const quality = metricsResult.quality;
+
+            if(quality){
+
+                document.getElementById("quality-score").innerText =
+                    quality.overall + "%";
+
+                document.getElementById("quality-status").innerText =
+                    quality.top.status;
+
+                document.getElementById("quality-progress").style.width =
+                    quality.overall + "%";
+
+                document.getElementById("quality-recommendation").innerText =
+                    quality.top.recommendation;
+
+                document.getElementById("top-quality").innerHTML =
+                    buildQualityHTML(quality.top);
+
+                document.getElementById("side-quality").innerHTML =
+                    buildQualityHTML(quality.side);
+            }
+
+            loader.classList.add("d-none");
+
+            viewport.classList.remove("blur-overlay");
             // Append row to current history logging datatable grid directly
             const rowHook = document.getElementById('live-table-append-hook');
             const rowHTML = `
@@ -636,12 +885,64 @@ async function triggerMeasurementAnalysis() {
         } else {
             alert("Inspection system hardware processing exception: " + metricsResult.error);
         }
-    } catch (serverException) {
-        alert("Critical HTTP link handshake breakdown. Check your local dev server connectivity.");
-    } finally {
-        loader.classList.add('d-none');
-        viewport.classList.remove('blur-overlay');
+    } 
+    catch (serverException) {
+
+        console.error(serverException);
+
+        alert(serverException.stack);
+
     }
+    finally {
+
+        loader.classList.add("d-none");
+
+        viewport.classList.remove("blur-overlay");
+
+    }
+}
+
+function buildQualityHTML(q){
+
+    return `
+        <ul class="list-unstyled text-white mb-0">
+
+            <li class="mb-2">
+                <i class="fa-solid fa-circle-check text-success me-2"></i>
+                Banana Detected
+            </li>
+
+            <li class="mb-2">
+                <i class="fa-solid fa-circle-check text-success me-2"></i>
+                Full Object Visible
+            </li>
+
+            <li class="mb-2">
+                <i class="fa-solid fa-camera text-info me-2"></i>
+                Sharpness :
+                <span class="fw-bold">${q.checks.sharpness}</span>
+            </li>
+
+            <li class="mb-2">
+                <i class="fa-solid fa-expand text-warning me-2"></i>
+                Coverage :
+                <span class="fw-bold">${q.checks.coverage}%</span>
+            </li>
+
+            <li class="mb-2">
+                <i class="fa-solid fa-vector-square text-primary me-2"></i>
+                Segmentation :
+                <span class="fw-bold">${q.checks.segmentation}%</span>
+            </li>
+
+            <li>
+                <i class="fa-solid fa-compass text-danger me-2"></i>
+                Angle :
+                <span class="fw-bold">${q.checks.angle}°</span>
+            </li>
+
+        </ul>
+    `;
 }
 </script>
 </body>
