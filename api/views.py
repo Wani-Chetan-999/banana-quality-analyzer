@@ -2,6 +2,7 @@ import time
 import uuid
 import traceback
 
+from matplotlib.pylab import record
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -104,6 +105,9 @@ class AnalyzeBananaView(APIView):
                 assigned_grade=assigned_grade,
                 execution_duration_ms=processing_duration,
             )
+            
+            print("Saved Top:", record.top_annotated_image.name)
+            print("Saved Side:", record.side_annotated_image.name)
 
             # Use already-saved files
             record.top_image_capture.name = top_path
