@@ -1,11 +1,13 @@
 import os
 import datetime
+from django.conf import settings
 from reportlab.lib.pagesizes import letter
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, Image, KeepTogether
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib import colors
 from reportlab.pdfgen import canvas
 from dashboard.models import BananaAnalysisReport
+from reportlab.lib.utils import ImageReader
 
 class NumberedCanvas(canvas.Canvas):
     """
@@ -70,6 +72,42 @@ class BananaReportGenerator:
     along with an integrated validation stamp badge.
     """
     
+    @staticmethod
+    def create_proportional_image(image_path, max_width, max_height):
+        """
+        Preserve aspect ratio while fitting inside the given box.
+        """
+        reader = ImageReader(image_path)
+        img_width, img_height = reader.getSize()
+        aspect = img_width / float(img_height)
+
+        # Scale to fit while maintaining proportion
+        if (max_width / float(max_height)) > aspect:
+            final_height = max_height
+            final_width = final_height * aspect
+        else:
+            final_width = max_width
+            final_height = final_width / aspect
+
+        return Image(
+            image_path,
+            width=final_width,
+            height=final_height
+        )
+
+    @staticmethod
+    def _get_absolute_image_path(relative_path):
+        """
+        Helper method to resolve media URLs/paths to absolute file paths.
+        """
+        if not relative_path:
+            return None
+            
+        clean_path = str(relative_path).replace("/media/", "")
+        # Remove any leading slashes to prevent absolute path overriding in os.path.join
+        clean_path = clean_path.lstrip("\\/") 
+        return os.path.join(settings.MEDIA_ROOT, clean_path)
+        
     @staticmethod
     def generate_pdf(report_id: int, output_destination: str) -> str:
         report = BananaAnalysisReport.objects.get(id=report_id)
@@ -229,21 +267,44 @@ class BananaReportGenerator:
         # 5. DUAL CAMERA VISUAL EVIDENCE VIEWPORTS
         # =========================================================================
         story.append(Paragraph("Isolated Hardware Vision Evidence Assets", styles['SectionHeading']))
-        img_row = []
-        img_widths = 260
-        img_heights = 115 
         
-        if report.top_image_capture and os.path.exists(report.top_image_capture.path):
-            img_row.append(Image(report.top_image_capture.path, width=img_widths, height=img_heights))
+        MAX_WIDTH = 260
+        MAX_HEIGHT = 170
+        img_row = []
+
+        # Resolve paths for the annotated debug images
+        top_img_path = BananaReportGenerator._get_absolute_image_path(report.top_annotated_image.path)
+        side_img_path = BananaReportGenerator._get_absolute_image_path(report.side_annotated_image.path)
+
+        # Process TOP camera image
+        if top_img_path and os.path.exists(top_img_path):
+            img_row.append(
+                BananaReportGenerator.create_proportional_image(
+                    top_img_path, MAX_WIDTH, MAX_HEIGHT
+                )
+            )
         else:
-            img_row.append(Paragraph("<font color='red'>[CAM_01_TOP Image Buffer Offline]</font>", styles['TableBodyText']))
+            img_row.append(
+                Paragraph("<font color='red'>[Annotated Image Not Available]</font>", styles['TableBodyText'])
+            )
             
-        if report.side_image_capture and os.path.exists(report.side_image_capture.path):
-            img_row.append(Image(report.side_image_capture.path, width=img_widths, height=img_heights))
+        # Process SIDE camera image
+        if side_img_path and os.path.exists(side_img_path):
+            img_row.append(
+                BananaReportGenerator.create_proportional_image(
+                    side_img_path, MAX_WIDTH, MAX_HEIGHT
+                )
+            )
         else:
-            img_row.append(Paragraph("<font color='red'>[CAM_02_SIDE Image Buffer Offline]</font>", styles['TableBodyText']))
+            img_row.append(
+                Paragraph("<font color='red'>[Annotated Image Not Available]</font>", styles['TableBodyText'])
+            )
             
-        img_table = Table([img_row], colWidths=[270, 270])
+        img_table = Table(
+            [img_row],
+            colWidths=[270, 270],
+            rowHeights=[180]
+        )
         img_table.setStyle(TableStyle([
             ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
             ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
@@ -274,8 +335,15 @@ class BananaReportGenerator:
         # =========================================================================
         cert_text = "<b>Attestation:</b> Rigorously generated in real-time by the Chamber AI Enclosure Sizing Node using pixel coordinate distance multipliers and volumetric distribution density tracking algorithms."
         
-        # Dynamic verification stamp configuration mapping
-        logo_path = os.path.join("static", "images", "D:\\Projects\\banana_grading_system\\media\\logo.png") # Point directly to your verification badge path on disk
+        # Resolve correct logo path using settings module
+        logo_path = os.path.join(settings.MEDIA_ROOT, "logo.png")
+        if not os.path.exists(logo_path):
+            try:
+                # Fallback to static directory if not located in media
+                logo_path = os.path.join(settings.BASE_DIR, "static", "images", "logo.png")
+            except AttributeError:
+                pass
+                
         if os.path.exists(logo_path):
             status_element = Image(logo_path, width=90, height=90)
         else:

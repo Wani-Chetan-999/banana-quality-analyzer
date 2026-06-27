@@ -85,7 +85,15 @@ class AnalyzeBananaView(APIView):
             # Store Report
             # -----------------------------------------------------
 
+            top_debug = results["debug"]["top"]["annotated"]
+            side_debug = results["debug"]["side"]["annotated"]
+
             record = BananaAnalysisReport.objects.create(
+                top_image_capture=top_file,
+                side_image_capture=side_file,
+
+                top_annotated_image=top_debug.replace("/media/", ""),
+                side_annotated_image=side_debug.replace("/media/", ""),
 
                 calculated_length=results["length_mm"],
                 calculated_width=results["width_mm"],

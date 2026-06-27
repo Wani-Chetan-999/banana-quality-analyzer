@@ -41,7 +41,20 @@ class BananaAnalysisReport(models.Model):
     """Stores geometric metadata logs alongside real-world processing assets."""
     top_image_capture = models.ImageField(upload_to='captures/top/')
     side_image_capture = models.ImageField(upload_to='captures/side/')
-    
+
+    # NEW
+    top_annotated_image = models.ImageField(
+        upload_to="debug/top/",
+        blank=True,
+        null=True
+    )
+
+    side_annotated_image = models.ImageField(
+        upload_to="debug/side/",
+        blank=True,
+        null=True
+    )
+
     calculated_length = models.FloatField()
     calculated_width = models.FloatField()
     calculated_thickness = models.FloatField()

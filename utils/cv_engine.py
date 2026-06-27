@@ -45,28 +45,95 @@ class BananaCVEngine:
         # Return URL that browser can access
         return f"/media/debug/{filename}"
     
+    
     def midpoint(self, p1, p2):
+        """
+        Returns midpoint between two points.
+        """
         return (
             int((p1[0] + p2[0]) / 2),
             int((p1[1] + p2[1]) / 2)
-    )
-    def draw_measurement(self, image, p1, p2, color, text):
-        cv2.line(image, tuple(p1), tuple(p2), color, 3)
+        )
 
-        cv2.circle(image, tuple(p1), 5, color, -1)
-        cv2.circle(image, tuple(p2), 5, color, -1)
 
-        m = self.midpoint(p1, p2)
+    def draw_measurement(
+        self,
+        image,
+        start,
+        end,
+        color,
+        label,
+        label_offset=(10, -10)
+    ):
+        """
+        Draw professional measurement ruler.
+        """
+
+        start = tuple(map(int, start))
+        end = tuple(map(int, end))
+
+        # Anti-aliased ruler
+        cv2.arrowedLine(
+            image,
+            start,
+            end,
+            color,
+            3,
+            cv2.LINE_AA
+        )
+
+        # End markers
+        cv2.circle(
+            image,
+            start,
+            5,
+            color,
+            -1,
+            cv2.LINE_AA
+        )
+
+        cv2.circle(
+            image,
+            end,
+            5,
+            color,
+            -1,
+            cv2.LINE_AA
+        )
+
+        # Midpoint
+        mx, my = self.midpoint(start, end)
+
+        # Small background box
+        (tw, th), _ = cv2.getTextSize(
+            label,
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.6,
+            2
+        )
+
+        x = mx + label_offset[0]
+        y = my + label_offset[1]
+
+        cv2.rectangle(
+            image,
+            (x - 4, y - th - 6),
+            (x + tw + 4, y + 6),
+            (25, 25, 25),
+            -1
+        )
 
         cv2.putText(
             image,
-            text,
-            (m[0] + 8, m[1] - 8),
+            label,
+            (x, y),
             cv2.FONT_HERSHEY_SIMPLEX,
-            0.65,
+            0.6,
             color,
-            2
-    )
+            2,
+            cv2.LINE_AA
+        )
+       
     def create_measurement_overlay(
         self,
         image,
@@ -79,28 +146,62 @@ class BananaCVEngine:
         pixels_per_cm,
         view_name
     ):
+        """
+        Draw professional industrial measurement overlay.
+        """
 
         overlay = image.copy()
 
-        # Green contour
+        # ==========================================================
+        # Draw Banana Contour
+        # ==========================================================
         cv2.drawContours(
             overlay,
             [contour],
             -1,
             (0,255,0),
-            3
+            3,
+            cv2.LINE_AA
         )
 
+        # ==========================================================
+        # Rotated Bounding Box
+        # ==========================================================
         box = cv2.boxPoints(rect)
         box = np.int32(box)
 
-        # Four edge lengths
+        cv2.drawContours(
+            overlay,
+            [box],
+            0,
+            (0,0,255),
+            2,
+            cv2.LINE_AA
+        )
+
+        # ==========================================================
+        # Rectangle Center
+        # ==========================================================
+        cx = int(rect[0][0])
+        cy = int(rect[0][1])
+
+        cv2.circle(
+            overlay,
+            (cx,cy),
+            6,
+            (255,255,255),
+            -1,
+            cv2.LINE_AA
+        )
+
+        # ==========================================================
+        # Rectangle Edges
+        # ==========================================================
         edges = []
 
         for i in range(4):
 
             p1 = box[i]
-
             p2 = box[(i+1)%4]
 
             d = np.linalg.norm(p1-p2)
@@ -110,10 +211,11 @@ class BananaCVEngine:
         edges.sort(key=lambda x:x[0])
 
         width_edges = edges[:2]
-
         length_edges = edges[2:]
 
-        # Midpoints of opposite edges
+        # ==========================================================
+        # Midpoints
+        # ==========================================================
         length_start = self.midpoint(
             length_edges[0][1],
             length_edges[0][2]
@@ -134,6 +236,49 @@ class BananaCVEngine:
             width_edges[1][2]
         )
 
+        # ==========================================================
+        # Extension Lines
+        # ==========================================================
+        cv2.line(
+            overlay,
+            tuple(length_edges[0][1]),
+            tuple(length_start),
+            (180,180,180),
+            1,
+            cv2.LINE_AA
+        )
+
+        cv2.line(
+            overlay,
+            tuple(length_edges[1][1]),
+            tuple(length_end),
+            (180,180,180),
+            1,
+            cv2.LINE_AA
+        )
+
+        cv2.line(
+            overlay,
+            tuple(width_edges[0][1]),
+            tuple(width_start),
+            (180,180,180),
+            1,
+            cv2.LINE_AA
+        )
+
+        cv2.line(
+            overlay,
+            tuple(width_edges[1][1]),
+            tuple(width_end),
+            (180,180,180),
+            1,
+            cv2.LINE_AA
+        )
+
+        # ==========================================================
+        # Draw Measurements
+        # ==========================================================
+
         if view_name == "TOP":
 
             self.draw_measurement(
@@ -141,7 +286,7 @@ class BananaCVEngine:
                 length_start,
                 length_end,
                 (0,255,255),
-                f"L {length_cm*10:.1f} mm"
+                f"{length_cm*10:.1f} mm"
             )
 
             self.draw_measurement(
@@ -149,7 +294,8 @@ class BananaCVEngine:
                 width_start,
                 width_end,
                 (255,0,0),
-                f"W {width_cm*10:.1f} mm"
+                f"{width_cm*10:.1f} mm",
+                (-80,25)
             )
 
         else:
@@ -159,31 +305,112 @@ class BananaCVEngine:
                 width_start,
                 width_end,
                 (255,0,255),
-                f"T {thickness_cm*10:.1f} mm"
+                f"{thickness_cm*10:.1f} mm",
+                (-80,25)
             )
+
+        # ==========================================================
+        # Information Panel
+        # ==========================================================
+
+        panel = overlay.copy()
+
+        cv2.rectangle(
+            panel,
+            (10,10),
+            (250,170),
+            (20,20,20),
+            -1
+        )
+
+        overlay = cv2.addWeighted(
+            panel,
+            0.55,
+            overlay,
+            0.45,
+            0
+        )
+
+        # ==========================================================
+        # Camera Title
+        # ==========================================================
 
         cv2.putText(
             overlay,
-            f"Area : {(area_px*(10/pixels_per_cm)**2):.1f} mm2",
-            (20,30),
+            f"{view_name} CAMERA",
+            (20,35),
             cv2.FONT_HERSHEY_SIMPLEX,
-            0.7,
-            (0,255,0),
-            2
+            0.75,
+            (255,255,0),
+            2,
+            cv2.LINE_AA
+        )
+
+        # ==========================================================
+        # Measurements
+        # ==========================================================
+
+        cv2.putText(
+            overlay,
+            f"Length : {length_cm*10:.1f} mm",
+            (20,65),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.55,
+            (0,255,255),
+            2,
+            cv2.LINE_AA
         )
 
         cv2.putText(
             overlay,
-            f"Calibration : OK",
-            (20,60),
+            f"Width : {width_cm*10:.1f} mm",
+            (20,90),
             cv2.FONT_HERSHEY_SIMPLEX,
-            0.7,
-            (0,200,255),
-            2
+            0.55,
+            (255,0,0),
+            2,
+            cv2.LINE_AA
+        )
+
+        cv2.putText(
+            overlay,
+            f"Thickness : {thickness_cm*10:.1f} mm",
+            (20,115),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.55,
+            (255,0,255),
+            2,
+            cv2.LINE_AA
+        )
+
+        area_mm2 = area_px * ((10/pixels_per_cm)**2)
+
+        cv2.putText(
+            overlay,
+            f"Area : {area_mm2:.1f} mm2",
+            (20,140),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.55,
+            (0,255,0),
+            2,
+            cv2.LINE_AA
+        )
+
+        angle = rect[-1]
+
+        cv2.putText(
+            overlay,
+            f"Angle : {angle:.1f} deg",
+            (20,165),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.55,
+            (255,255,255),
+            2,
+            cv2.LINE_AA
         )
 
         return overlay
-    
+
     def evaluate_capture_quality(
         self,
         image,
@@ -383,24 +610,10 @@ class BananaCVEngine:
             key=cv2.contourArea
         )
 
-        contour_img = original_img.copy()
-
-        cv2.drawContours(
-
-            contour_img,
-
-            [banana_contour],
-
-            -1,
-
-            (0,255,0),
-
-            3
-        )
-        
         rect = cv2.minAreaRect(
             banana_contour
         )
+
         quality = self.evaluate_capture_quality(
 
             original_img,
@@ -411,67 +624,16 @@ class BananaCVEngine:
 
             rect
         )
-        
-        annotated_img = original_img.copy()
 
-        # Draw detected contour
-        cv2.drawContours(
-            annotated_img,
-            [banana_contour],
-            -1,
-            (0,255,0),
-            3
-        )
+        (_, _), (w_box_px, h_box_px), angle = rect
 
-        box = cv2.boxPoints(rect)
-        box = np.int32(box)
-        # Four rectangle edges
-        edge_lengths = []
-
-        for i in range(4):
-
-            p1 = box[i]
-
-            p2 = box[(i + 1) % 4]
-
-            dist = np.linalg.norm(p1 - p2)
-
-            edge_lengths.append((dist, p1, p2))
-
-        (_, _), (w_box_px, h_box_px), _ = rect
-
-        edge_lengths.sort(
-            key=lambda x: x[0]
-        )
-        width_edges = edge_lengths[:2]
-        length_edges = edge_lengths[2:]
         box_length_cm = (
-            max(w_box_px, h_box_px)
+            max(w_box_px,h_box_px)
             / pixels_per_cm
-        )
-        
-        length_start = self.midpoint(
-            length_edges[0][1],
-            length_edges[0][2]
-        )
-
-        length_end = self.midpoint(
-            length_edges[1][1],
-            length_edges[1][2]
-        )
-        
-        width_start = self.midpoint(
-            width_edges[0][1],
-            width_edges[0][2]
-        )
-
-        width_end = self.midpoint(
-            width_edges[1][1],
-            width_edges[1][2]
         )
 
         box_width_cm = (
-            min(w_box_px, h_box_px)
+            min(w_box_px,h_box_px)
             / pixels_per_cm
         )
 
@@ -483,37 +645,60 @@ class BananaCVEngine:
 
         inner_core = dist_transform[
             dist_transform >
-            (dist_transform.max() * 0.5)
+            (dist_transform.max()*0.5)
         ]
 
         avg_radius_px = (
+
             np.mean(inner_core)
-            if len(inner_core) > 0
+
+            if len(inner_core)>0
+
             else dist_transform.max()
+
         )
 
         precise_thickness_cm = (
-            avg_radius_px * 2
-        ) / pixels_per_cm
+            avg_radius_px*2
+        )/pixels_per_cm
 
         area_px = cv2.contourArea(
             banana_contour
         )
-        
+
         annotated_img = self.create_measurement_overlay(
+
             original_img,
+
             banana_contour,
+
             rect,
+
             box_length_cm,
+
             box_width_cm,
+
             precise_thickness_cm,
+
             area_px,
+
             pixels_per_cm,
+
             prefix.upper()
+
         )
         
-        
         #_________________________________
+        contour_img = original_img.copy()
+
+        cv2.drawContours(
+            contour_img,
+            [banana_contour],
+            -1,
+            (0,255,0),
+            3
+        )
+        
         debug = {
 
             "original":
