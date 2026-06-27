@@ -277,24 +277,121 @@
                         <div class="row g-3">
                             <div class="col-md-6 mb-3">
                                 <div class="camera-feed-box" id="cam-top">
-                                    <div class="camera-badge"><i class="fa-solid fa-circle text-danger me-1"></i> CAM_01_TOP</div>
+                                    <div class="camera-badge">
+                                        <i class="fa-solid fa-circle text-danger me-1"></i> CAM_01_TOP
+                                    </div>
+
                                     <div class="text-center content-placeholder">
                                         <i class="fa-solid fa-camera-cctv d-block fs-1 opacity-25 mb-2"></i>
-                                        <span class="text-muted small">Fixed Matte Background Isolation Deck</span>
+                                        <span class="text-muted small">
+                                            Fixed Matte Background Isolation Deck
+                                        </span>
                                     </div>
                                 </div>
-                                <input type="file" id="file-top-cam" accept="image/*" class="form-control form-control-sm mt-2 bg-dark text-white border-secondary" style="font-size:0.75rem;" onchange="processLocalPreview(this, 'cam-top')">
+
+                                <!-- Hidden Inputs -->
+                                <input
+                                    type="file"
+                                    id="file-top-camera"
+                                    accept="image/*"
+                                    capture="environment"
+                                    hidden
+                                    onchange="copySelectedFile(this,'file-top-cam');processLocalPreview(this,'cam-top')">
+
+                                <input
+                                    type="file"
+                                    id="file-top-gallery"
+                                    accept="image/*"
+                                    hidden
+                                    onchange="copySelectedFile(this,'file-top-cam');processLocalPreview(this,'cam-top')">
+
+                                <!-- Dummy input used by existing JS -->
+                                <input
+                                    type="file"
+                                    id="file-top-cam"
+                                    hidden>
+
+                                <div class="d-grid gap-2 mt-2">
+
+                                    <button
+                                        type="button"
+                                        class="btn btn-warning btn-sm"
+                                        onclick="document.getElementById('file-top-camera').click()">
+
+                                        <i class="fa-solid fa-camera me-2"></i>
+                                        Take Photo
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        class="btn btn-outline-light btn-sm"
+                                        onclick="document.getElementById('file-top-gallery').click()">
+
+                                        <i class="fa-solid fa-image me-2"></i>
+                                        Choose Gallery
+                                    </button>
+
+                                </div>
                             </div>
 
                             <div class="col-md-6 mb-3">
                                 <div class="camera-feed-box" id="cam-side">
-                                    <div class="camera-badge"><i class="fa-solid fa-circle text-danger me-1"></i> CAM_02_SIDE</div>
+                                    <div class="camera-badge">
+                                        <i class="fa-solid fa-circle text-danger me-1"></i> CAM_02_SIDE
+                                    </div>
+
                                     <div class="text-center content-placeholder">
                                         <i class="fa-solid fa-camera-cctv d-block fs-1 opacity-25 mb-2"></i>
-                                        <span class="text-muted small">Transverse Profile Alignment Matrix</span>
+                                        <span class="text-muted small">
+                                            Transverse Profile Alignment Matrix
+                                        </span>
                                     </div>
                                 </div>
-                                <input type="file" id="file-side-cam" accept="image/*" class="form-control form-control-sm mt-2 bg-dark text-white border-secondary" style="font-size:0.75rem;" onchange="processLocalPreview(this, 'cam-side')">
+
+                                <!-- Hidden Inputs -->
+
+                                <input
+                                    type="file"
+                                    id="file-side-camera"
+                                    accept="image/*"
+                                    capture="environment"
+                                    hidden
+                                    onchange="copySelectedFile(this,'file-side-cam');processLocalPreview(this,'cam-side')">
+
+                                <input
+                                    type="file"
+                                    id="file-side-gallery"
+                                    accept="image/*"
+                                    hidden
+                                    onchange="copySelectedFile(this,'file-side-cam');processLocalPreview(this,'cam-side')">
+
+                                <!-- Dummy input used by existing JS -->
+                                <input
+                                    type="file"
+                                    id="file-side-cam"
+                                    hidden>
+
+                                <div class="d-grid gap-2 mt-2">
+
+                                    <button
+                                        type="button"
+                                        class="btn btn-warning btn-sm"
+                                        onclick="document.getElementById('file-side-camera').click()">
+
+                                        <i class="fa-solid fa-camera me-2"></i>
+                                        Take Photo
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        class="btn btn-outline-light btn-sm"
+                                        onclick="document.getElementById('file-side-gallery').click()">
+
+                                        <i class="fa-solid fa-image me-2"></i>
+                                        Choose Gallery
+                                    </button>
+
+                                </div>
                             </div>
                         </div>
 
@@ -447,6 +544,19 @@ function processLocalPreview(inputElement, targetBoxId) {
     }
 }
 
+function copySelectedFile(sourceInput, targetInputId) {
+
+    const target = document.getElementById(targetInputId);
+
+    const dt = new DataTransfer();
+
+    if (sourceInput.files.length > 0) {
+        dt.items.add(sourceInput.files[0]);
+    }
+
+    target.files = dt.files;
+}
+
 async function triggerMeasurementAnalysis() {
     const fileTopInput = document.getElementById('file-top-cam').files[0];
     const fileSideInput = document.getElementById('file-side-cam').files[0];
@@ -477,11 +587,25 @@ async function triggerMeasurementAnalysis() {
 
         if (networkResponse.ok) {
             // Update Metric labels values inside DOM containers using high contrast utility classes
-            document.getElementById('lbl-length').innerHTML =`${metricsResult.metrics.length_mm}<span style="color:white;font-size:14px;">mm</span>`;
-            document.getElementById('lbl-width').innerHTML = `${metricsResult.metrics.width_mm} <span class="fs-6 subtitle-text fw-normal">mm</span>`;
-            document.getElementById('lbl-thickness').innerHTML = `${metricsResult.metrics.thickness_mm} <span class="fs-6 subtitle-text fw-normal">mm</span>`;
-            document.getElementById('lbl-area').innerHTML = `${metricsResult.metrics.projected_area_mm2} <span class="fs-6 subtitle-text fw-normal">mm²</span>`;
-            document.getElementById('lbl-weight').innerHTML = `${metricsResult.prediction.weight_grams}<span class="fs-3 subtitle-text fw-normal"> g</span>`;
+            document.getElementById("lbl-length").innerHTML =
+            `${parseFloat(metricsResult.metrics.length_mm).toFixed(2)}
+            <span class="fs-6 text-white-50 fw-normal">mm</span>`;
+
+            document.getElementById("lbl-width").innerHTML =
+                `${parseFloat(metricsResult.metrics.width_mm).toFixed(2)}
+                <span class="fs-6 text-white-50 fw-normal">mm</span>`;
+
+            document.getElementById("lbl-thickness").innerHTML =
+                `${parseFloat(metricsResult.metrics.thickness_mm).toFixed(2)}
+                <span class="fs-6 text-white-50 fw-normal">mm</span>`;
+
+            document.getElementById("lbl-area").innerHTML =
+                `${parseFloat(metricsResult.metrics.projected_area_mm2).toFixed(2)}
+                <span class="fs-6 text-white-50 fw-normal">mm²</span>`;
+
+            document.getElementById("lbl-weight").innerHTML =
+                `${parseFloat(metricsResult.prediction.weight_grams).toFixed(2)}
+                <span class="fs-3 text-white-50 fw-normal"> g</span>`;
             
             const gradeBadge = document.getElementById('lbl-grade');
             gradeBadge.innerText = metricsResult.prediction.assigned_grade;
