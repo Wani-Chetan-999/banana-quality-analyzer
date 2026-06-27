@@ -1,5 +1,7 @@
 import os
 import datetime
+from PIL import report
+from PIL import report
 from django.conf import settings
 from reportlab.lib.pagesizes import letter
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, Image, KeepTogether
@@ -273,8 +275,8 @@ class BananaReportGenerator:
         img_row = []
 
         # Resolve paths for the annotated debug images
-        top_img_path = BananaReportGenerator._get_absolute_image_path(report.top_annotated_image.path)
-        side_img_path = BananaReportGenerator._get_absolute_image_path(report.side_annotated_image.path)
+        top_img_path = report.top_annotated_image.path if report.top_annotated_image else None
+        side_img_path = report.side_annotated_image.path if report.side_annotated_image else None
 
         # Process TOP camera image
         if top_img_path and os.path.exists(top_img_path):
